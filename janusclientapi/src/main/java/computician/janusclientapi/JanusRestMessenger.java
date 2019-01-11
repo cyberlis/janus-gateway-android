@@ -14,6 +14,13 @@ import com.koushikdutta.async.http.callback.HttpConnectCallback;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.*;
+import java.net.*;
+import org.apache.http.impl.client.*;
+import org.apache.http.client.methods.*;
+import org.apache.http.*;
+
+
 
 /**
  * Created by ben.trent on 5/7/2015.
@@ -29,23 +36,30 @@ public class JanusRestMessenger implements IJanusMessenger {
     private String resturi;
     private final JanusMessengerType type = JanusMessengerType.restful;
 
-    public void longPoll()
+    public void longPoll(BigInteger session_id)
     {
+        this.session_id = session_id;
         if(resturi.isEmpty())
             resturi = uri;
-
-
-        AsyncHttpGet get = new AsyncHttpGet(uri+"/"+session_id.toString()+"&maxev=1");
-
-        AsyncHttpClient.getDefaultInstance().executeJSONObject(get, new AsyncHttpClient.JSONObjectCallback() {
-            @Override
-            public void onCompleted(Exception e, AsyncHttpResponse source, JSONObject result) {
-                if(e==null)
-                    receivedMessage(result.toString());
-                else
-                    handler.onError(e);
+        while(true){
+            Log.d("LONGPOLL", "START");
+            try{
+                DefaultHttpClient defaultClient = new DefaultHttpClient();
+                HttpGet httpGetRequest = new HttpGet(uri+"/"+session_id.toString()+"?maxev=1");
+                HttpResponse httpResponse = defaultClient.execute(httpGetRequest);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(), "UTF-8"));
+                StringBuilder sb = new StringBuilder();
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                receivedMessage(sb.toString());
+            } catch(Exception e){
+                e.printStackTrace();
+                handler.onError(e);
             }
-        });
+            Log.d("LONGPOLL", "FINISH");
+        }
     }
 
     public JanusRestMessenger(String uri, IJanusMessageObserver handler) {
@@ -86,6 +100,7 @@ public class JanusRestMessenger implements IJanusMessenger {
         Log.d("message", "Sent: \n\t" + message);
         if(resturi.isEmpty())
             resturi = uri;
+        Log.d("message", "URL: \n\t" + resturi);
         AsyncHttpRequest request = new AsyncHttpRequest(Uri.parse(resturi),"post");
        AsyncHttpPost post = new AsyncHttpPost(resturi);
 

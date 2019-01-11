@@ -189,7 +189,7 @@ public class JanusPluginHandle {
                 try {
 
                     String sdpString = jsep.getString("sdp");
-                    Log.d("JANUSCLIENT", sdpString);
+                    Log.d("JANUSCLIENT", "Remote Offer" + sdpString);
                     SessionDescription.Type type = SessionDescription.Type.fromCanonicalForm(jsep.getString("type"));
                     SessionDescription sdp = new SessionDescription(type, sdpString);
                     pc.setRemoteDescription(new WebRtcObserver(webrtcCallbacks), sdp);
@@ -228,6 +228,7 @@ public class JanusPluginHandle {
     }
 
     private void onRemoteStream(MediaStream stream) {
+        Log.d("JANUSCLIENT", "OnRemoteStream");
         callbacks.onRemoteStream(stream);
     }
 
@@ -351,6 +352,7 @@ public class JanusPluginHandle {
         }
         if (callbacks.getMedia().getRecvVideo()) {
             Log.d("VIDEO_ROOM", "Receiving video");
+            pc_cons.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
         }
         if (isOffer) {
             pc.createOffer(new WebRtcObserver(callbacks), pc_cons);

@@ -43,6 +43,13 @@ public class JanusWebsocketMessenger implements IJanusMessenger {
             public void onCompleted(Exception ex, WebSocket webSocket) {
                 if (ex != null) {
                     handler.onError(ex);
+                    Log.d("JANUSCLIENT", "Exception WebSocket");
+                    return;
+                }
+                if (webSocket == null) {
+                    handler.onError(new RuntimeException("webSocket is null"));
+                    Log.d("JANUSCLIENT", "Empty WebSocket");
+                    return;
                 }
                 client = webSocket;
                 client.setWriteableCallback(new WritableCallback() {

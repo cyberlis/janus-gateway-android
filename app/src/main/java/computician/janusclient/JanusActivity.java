@@ -58,6 +58,13 @@ public class JanusActivity extends Activity {
                 echoTest.initializeMediaContext(JanusActivity.this, true, true, true, con);
                 echoTest.Start();
 
+//                EGLContext con = VideoRendererGui.getEGLContext();
+//                VideoRenderer.Callbacks[] renderers = new VideoRenderer.Callbacks[1];
+//                renderers[0] = remoteRender;
+//                videoRoomTest = new VideoRoomTest(localRender, renderers);
+//                videoRoomTest.initializeMediaContext(JanusActivity.this, true, true, true, con);
+//                videoRoomTest.Start();
+
             } catch (Exception ex) {
                 Log.e("computician.janusclient", ex.getMessage());
             }

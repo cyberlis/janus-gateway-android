@@ -37,7 +37,7 @@ public class VideoRoomTest {
     public static final String REQUEST = "request";
     public static final String MESSAGE = "message";
     public static final String PUBLISHERS = "publishers";
-    private final String JANUS_URI = "ws://192.168.1.197:8188";
+    private final String JANUS_URI = "https://janus.conf.meetecho.com/janus";
     private JanusPluginHandle handle = null;
     private VideoRenderer.Callbacks localRender;
     private Deque<VideoRenderer.Callbacks> availableRemoteRenderers = new ArrayDeque<>();

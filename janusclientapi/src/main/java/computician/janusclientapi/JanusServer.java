@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import android.opengl.EGLContext;
 import android.os.AsyncTask;
+import android.util.Log;
 
 /**
  * Created by ben.trent on 5/7/2015.
@@ -47,6 +48,7 @@ public class JanusServer implements Runnable, IJanusMessageObserver, IJanusSessi
     private Boolean connected;
     private final IJanusMessenger serverConnection;
     private volatile Thread keep_alive;
+    private volatile Thread longPollThread;
     private Boolean peerConnectionFactoryInitialized = false;
 
     private class AsyncAttach extends AsyncTask<IJanusPluginCallbacks, Void ,Void>{
@@ -77,6 +79,17 @@ public class JanusServer implements Runnable, IJanusMessageObserver, IJanusSessi
         iceServers = gatewayObserver.getIceServers();
         ipv6Support = gatewayObserver.getIpv6Support();
         maxPollEvents = gatewayObserver.getMaxPollEvents();
+        iceServers.add(new PeerConnection.IceServer("stun:stun.l.google.com:19302"));
+        iceServers.add(new PeerConnection.IceServer("stun:stun1.l.google.com:19302"));
+        iceServers.add(new PeerConnection.IceServer("stun:stun2.l.google.com:19302"));
+        iceServers.add(new PeerConnection.IceServer("stun:stun3.l.google.com:19302"));
+        iceServers.add(new PeerConnection.IceServer("stun:stun4.l.google.com:19302"));
+        iceServers.add(new PeerConnection.IceServer("stun:stun.ekiga.net"));
+        iceServers.add(new PeerConnection.IceServer("turn:numb.viagenie.ca", "webrtc@live.com", "muazkh"));
+        iceServers.add(new PeerConnection.IceServer("turn:192.158.29.39:3478?transport=udp", "28224511:1379330808", "JZEOEt2V3Qb0y27GRntt2u2PAYA="));
+        iceServers.add(new PeerConnection.IceServer("turn:192.158.29.39:3478?transport=tcp", "28224511:1379330808", "JZEOEt2V3Qb0y27GRntt2u2PAYA="));
+
+        Log.d("JANUSCLIENT", "ICE Servers: " + iceServers);
         connected = false;
         sessionId = new BigInteger("-1");
         serverConnection = JanusMessagerFactory.createMessager(serverUri, this);
@@ -256,6 +269,7 @@ public class JanusServer implements Runnable, IJanusMessageObserver, IJanusSessi
     //region MessageObserver
     @Override
     public void receivedNewMessage(JSONObject obj) {
+        Log.d("JANUSCLIENT", "Plugin Event: " + obj);
         try {
             JanusMessageType type = JanusMessageType.fromString(obj.getString("janus"));
             String transaction = null;
@@ -305,6 +319,7 @@ public class JanusServer implements Runnable, IJanusMessageObserver, IJanusSessi
                     break;
                 }
                 case event: {
+
                     if (handle != null) {
                         JSONObject plugin_data = null;
                         if (obj.has("plugindata"))
@@ -351,6 +366,14 @@ public class JanusServer implements Runnable, IJanusMessageObserver, IJanusSessi
             keep_alive = new Thread(this, "KeepAlive");
             keep_alive.start();
             connected = true;
+            longPollThread = new Thread(){
+                public void run() {
+                    if(serverConnection.getMessengerType() != JanusMessengerType.restful)
+                        return;
+                    ((JanusRestMessenger)serverConnection).longPoll(sessionId);
+                }
+            };
+            longPollThread.start();
             //TODO do we want to keep track of multiple sessions and servers?
             gatewayObserver.onSuccess();
         } catch (JSONException ex) {

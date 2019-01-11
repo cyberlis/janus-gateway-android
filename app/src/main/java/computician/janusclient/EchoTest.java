@@ -30,7 +30,8 @@ import computician.janusclientapi.PluginHandleSendMessageCallbacks;
 
 public class EchoTest {
 
-    private final String JANUS_URI = "ws://192.168.1.197:8188";
+    private final String JANUS_URI = "https://janus.conf.meetecho.com/janus";
+
     private JanusPluginHandle handle = null;
     private final VideoRenderer.Callbacks localRender, remoteRender;
     private final JanusServer janusServer;
@@ -131,6 +132,7 @@ public class EchoTest {
 
         @Override
         public void onMessage(JSONObject msg, final JSONObject jsepLocal) {
+            Log.d("JANUSCLIENT", "OnMessage " + msg);
             if(jsepLocal != null)
             {
                 handle.handleRemoteJsep(new IPluginHandleWebRTCCallbacks() {
@@ -165,12 +167,15 @@ public class EchoTest {
 
         @Override
         public void onLocalStream(MediaStream stream) {
+            Log.d("JANUSCLIENT", "LOCAL");
+
             stream.videoTracks.get(0).addRenderer(new VideoRenderer(localRender));
-            VideoRendererGui.update(localRender, 0, 0, 25, 25, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, false);
+            VideoRendererGui.update(localRender, 72, 72, 25, 25, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, false);
         }
 
         @Override
         public void onRemoteStream(MediaStream stream) {
+            Log.d("JANUSCLIENT", "REMOTE");
             stream.videoTracks.get(0).setEnabled(true);
             if(stream.videoTracks.get(0).enabled())
                 Log.d("JANUSCLIENT", "video tracks enabled");
